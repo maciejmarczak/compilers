@@ -37,8 +37,8 @@ class Cparser(object):
         else:
             print("Unexpected end of input")
 
-    
-    
+
+
     def p_program(self, p):
         """program : declarations fundefs_opt instructions_opt"""
 
@@ -46,66 +46,77 @@ class Cparser(object):
     def p_declarations(self, p):
         """declarations : declarations declaration
                         | """
-                     
-    
+
+
     def p_declaration(self, p):
-        """declaration : TYPE inits ';' 
+        """declaration : TYPE inits ';'
                        | error ';' """
+        type = p[1]
+        inits = p[2]
+        print AST.Declaration(type, inits)
 
 
     def p_inits(self, p):
         """inits : inits ',' init
                  | init """
+        if len(p) == 4:
+            p[0] = p[1]
+            p[0].addInit(p[3])
+        else:
+            p[0] = AST.InitList()
+            p[0].addInit(p[1])
 
 
     def p_init(self, p):
-        """init : ID '=' expression """
- 
+        # finally should be: """init : ID '=' expression """
+        """init : ID"""
+        p[0] = AST.Init(p[1])
+
 
     def p_instructions_opt(self, p):
         """instructions_opt : instructions
                             | """
 
-    
+
     def p_instructions(self, p):
         """instructions : instructions instruction
                         | instruction """
-    
-    
+
+
     def p_instruction(self, p):
         """instruction : print_instr
                        | labeled_instr
                        | assignment
                        | choice_instr
-                       | while_instr 
-                       | repeat_instr 
+                       | while_instr
+                       | repeat_instr
                        | return_instr
                        | break_instr
                        | continue_instr
                        | compound_instr
                        | expression ';' """
-    
-    
+
+
     def p_print_instr(self, p):
         """print_instr : PRINT expr_list ';'
                        | PRINT error ';' """
 
-    
+
     def p_labeled_instr(self, p):
         """labeled_instr : ID ':' instruction """
-    
-    
+
+
     def p_assignment(self, p):
         """assignment : ID '=' expression ';' """
-    
-    
+
+
     def p_choice_instr(self, p):
         """choice_instr : IF '(' condition ')' instruction  %prec IFX
                         | IF '(' condition ')' instruction ELSE instruction
                         | IF '(' error ')' instruction  %prec IFX
                         | IF '(' error ')' instruction ELSE instruction """
-    
-    
+
+
     def p_while_instr(self, p):
         """while_instr : WHILE '(' condition ')' instruction
                        | WHILE '(' error ')' instruction """
@@ -113,24 +124,24 @@ class Cparser(object):
 
     def p_repeat_instr(self, p):
         """repeat_instr : REPEAT instructions UNTIL condition ';' """
-    
-    
+
+
     def p_return_instr(self, p):
         """return_instr : RETURN expression ';' """
 
-    
+
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
 
-    
+
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
-    
-    
+
+
     def p_compound_instr(self, p):
         """compound_instr : '{' declarations instructions_opt '}' """
 
-    
+
     def p_condition(self, p):
         """condition : expression"""
 
@@ -139,8 +150,8 @@ class Cparser(object):
         """const : INTEGER
                  | FLOAT
                  | STRING"""
-    
-    
+
+
     def p_expression(self, p):
         """expression : const
                       | ID
@@ -166,18 +177,18 @@ class Cparser(object):
                       | '(' error ')'
                       | ID '(' expr_list_or_empty ')'
                       | ID '(' error ')' """
-    
-    
+
+
     def p_expr_list_or_empty(self, p):
         """expr_list_or_empty : expr_list
                               | """
 
-    
+
     def p_expr_list(self, p):
         """expr_list : expr_list ',' expression
                      | expression """
-    
-    
+
+
     def p_fundefs_opt(self, p):
         """fundefs_opt : fundefs
                        | """
@@ -186,21 +197,18 @@ class Cparser(object):
         """fundefs : fundefs fundef
                    | fundef """
 
-          
+
     def p_fundef(self, p):
         """fundef : TYPE ID '(' args_list_or_empty ')' compound_instr """
-    
-    
+
+
     def p_args_list_or_empty(self, p):
         """args_list_or_empty : args_list
                               | """
-    
+
     def p_args_list(self, p):
-        """args_list : args_list ',' arg 
+        """args_list : args_list ',' arg
                      | arg """
-    
+
     def p_arg(self, p):
         """arg : TYPE ID """
-
-
-    
