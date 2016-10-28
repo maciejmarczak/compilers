@@ -1,6 +1,6 @@
 
 import ply.lex as lex
-
+import AST
 
 class Scanner(object):
 
@@ -79,7 +79,6 @@ class Scanner(object):
   def t_STRING(self,t):
       r'\"([^\\\n]|(\\.))*?\"'
       return t
-
 
   t_EQ = r"=="
   t_NEQ = r"!="

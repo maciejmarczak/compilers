@@ -68,9 +68,8 @@ class Cparser(object):
 
 
     def p_init(self, p):
-        # finally should be: """init : ID '=' expression """
-        """init : ID"""
-        p[0] = AST.Init(p[1])
+        """init : ID '=' expression """
+        p[0] = AST.Init(p[1], p[3])
 
 
     def p_instructions_opt(self, p):
@@ -150,6 +149,7 @@ class Cparser(object):
         """const : INTEGER
                  | FLOAT
                  | STRING"""
+        p[0] = AST.Const(p[1])
 
 
     def p_expression(self, p):
@@ -177,16 +177,41 @@ class Cparser(object):
                       | '(' error ')'
                       | ID '(' expr_list_or_empty ')'
                       | ID '(' error ')' """
+        lenp = len(p)
+        if lenp == 2:
+            p[0] = p[1]
+        elif lenp == 4:
+            if p[1] == '(':
+                if p[2] == ')':
+                    p[0] = AST.Epsilon
+                else:
+                    p[0] = p[2]
+            else:
+                p[0] = AST.BinExpr(p[2], p[1], p[3])
+        elif lenp == 5:
+            p[0] = AST.FunCall(p[1], p[3])
 
 
     def p_expr_list_or_empty(self, p):
         """expr_list_or_empty : expr_list
                               | """
+        if len(p) == 1:
+            p[0] = AST.Epsilon()
+        else:
+            p[0] = p[1]
+
 
 
     def p_expr_list(self, p):
         """expr_list : expr_list ',' expression
                      | expression """
+        if len(p) == 2:
+            p[0] = AST.ExprList()
+            p[0].addExpr(p[1])
+        else:
+            p[0] = p[1]
+            p[0].addExpr(p[3])
+
 
 
     def p_fundefs_opt(self, p):
