@@ -1,0 +1,13 @@
+Zadanie polega na stworzeniu translatora z kodu źródłowego do postaci abstrakcyjnego drzewa syntaktycznego.
+Translator powinien rozpoznawać następujące konstrukcje:
+- deklaracje zmiennych prostych o typach int, float lub string, // DONE
+- wyrażenia binarne,
+- wyrażenia relacyjne,
+- instrukcje przypisania, // DONE
+- instrukcje warunkowe if-else,
+- pętle while oraz repeat-until,
+- instrukcje break, continue oraz return,
+- instrukcje print,
+- instrukcje złożone,
+- definicje funkcji,
+- wywołania funkcji. // DONE

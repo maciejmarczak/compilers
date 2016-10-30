@@ -38,14 +38,30 @@ class Cparser(object):
             print("Unexpected end of input")
 
 
+    def p_file(self, p):
+        """file : program"""
+        program = p[1]
+        print AST.File(program)
+
 
     def p_program(self, p):
-        """program : declarations fundefs_opt instructions_opt"""
+        """program : declarations program
+                   | instructions_opt program
+                   | """
+        if len(p) == 3:
+            p[0] = AST.Program(p[1], p[2])
+        else:
+            p[0] = AST.Epsilon()
 
 
     def p_declarations(self, p):
         """declarations : declarations declaration
                         | """
+        if len(p) == 3:
+            p[0] = p[1]
+            p[0].appendDeclaration(p[2])
+        else:
+            p[0] = AST.Declarations()
 
 
     def p_declaration(self, p):
@@ -53,7 +69,7 @@ class Cparser(object):
                        | error ';' """
         type = p[1]
         inits = p[2]
-        print AST.Declaration(type, inits)
+        p[0] = AST.Declaration(type, inits)
 
 
     def p_inits(self, p):
@@ -73,13 +89,19 @@ class Cparser(object):
 
 
     def p_instructions_opt(self, p):
-        """instructions_opt : instructions
-                            | """
+        """instructions_opt : instructions"""
+        p[0] = AST.Instructions_OPT(p[1]) if len(p) == 2 else AST.Epsilon()
 
 
     def p_instructions(self, p):
         """instructions : instructions instruction
                         | instruction """
+        if len(p) == 3:
+            p[0] = p[1]
+            p[0].appendInstruction(p[2])
+        else:
+            p[0] = AST.Instructions()
+            p[0].appendInstruction(p[1])
 
 
     def p_instruction(self, p):
@@ -94,19 +116,23 @@ class Cparser(object):
                        | continue_instr
                        | compound_instr
                        | expression ';' """
+        p[0] = p[1]
 
 
     def p_print_instr(self, p):
         """print_instr : PRINT expr_list ';'
                        | PRINT error ';' """
+        p[0] = AST.PrintInstruction(p[2])
 
 
     def p_labeled_instr(self, p):
         """labeled_instr : ID ':' instruction """
+        p[0] = AST.LabeledInstruction(p[1], p[3])
 
 
     def p_assignment(self, p):
         """assignment : ID '=' expression ';' """
+        p[0] = AST.Assignment(p[1], p[3])
 
 
     def p_choice_instr(self, p):
@@ -114,35 +140,52 @@ class Cparser(object):
                         | IF '(' condition ')' instruction ELSE instruction
                         | IF '(' error ')' instruction  %prec IFX
                         | IF '(' error ')' instruction ELSE instruction """
+        condition = p[3]
+        instruction = p[5]
+        elseInstruction = p[7] if len(p) == 8 else None
+        p[0] = AST.ChoiceInstruction(condition, instruction, elseInstruction)
 
 
     def p_while_instr(self, p):
         """while_instr : WHILE '(' condition ')' instruction
                        | WHILE '(' error ')' instruction """
+        condition = p[3]
+        instruction = p[5]
+        p[0] = AST.WhileLoop(condition, instruction)
 
 
     def p_repeat_instr(self, p):
         """repeat_instr : REPEAT instructions UNTIL condition ';' """
+        instructions = p[2]
+        condition = p[4]
+        p[0] = AST.RepeatInstruction(instructions, condition)
 
 
     def p_return_instr(self, p):
         """return_instr : RETURN expression ';' """
+        p[0] = AST.ReturnInstruction(p[2])
 
 
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
+        p[0] = AST.ContinueInstruction()
 
 
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
+        p[0] = AST.BreakInstruction()
 
 
     def p_compound_instr(self, p):
         """compound_instr : '{' declarations instructions_opt '}' """
+        declarations = p[2]
+        instructions_opt = p[3]
+        p[0] = AST.CompoundInstruction(declarations, instructions_opt)
 
 
     def p_condition(self, p):
         """condition : expression"""
+        p[0] = AST.Condition(p[1])
 
 
     def p_const(self, p):
