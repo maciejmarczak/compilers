@@ -13,10 +13,15 @@ class File(Node):
 
 
 class Program(Node):
-    def __init__(self, declarations, instructions_opt, fundefs_opt):
-        self.declarations = declarations
-        self.instructions_opt = instructions_opt
-        self.fundefs_opt = fundefs_opt
+    def __init__(self, content):
+        self.content = content
+
+class ProgramParts(Node):
+    def __init__(self):
+        self.parts = []
+
+    def appendPart(self, part):
+        self.parts.append(part)
 
 
 class Declarations(Node):
@@ -144,15 +149,6 @@ class CompoundInstruction(Node):
 class Condition(Node):
     def __init__(self, expression):
         self.expression = expression
-
-
-class Fundefs(Node):
-    def __init__(self):
-        self.fundefs = []
-
-    def appendFundef(self, fundef):
-        self.fundefs.append(fundef)
-
 
 class Fundef(Node):
     def __init__(self, ret, name, args, compound):

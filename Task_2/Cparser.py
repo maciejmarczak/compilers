@@ -45,14 +45,24 @@ class Cparser(object):
 
 
     def p_program(self, p):
-        """program : declarations instructions_opt fundefs_opt"""
-        if len(p) == 4:
-            declarations = p[1]
-            instructions_opt = p[2]
-            fundefs_opt = p[3]
-            p[0] = AST.Program(declarations, instructions_opt, fundefs_opt)
+        """program : program_parts"""
+        p[0] = p[1]
+
+    def p_program_parts(self, p):
+        """program_parts : program_parts program_part
+                        | program_part"""
+        if len(p) == 3:
+            p[0] = p[1]
+            p[0].appendPart(p[2])
         else:
-            p[0] = AST.Epsilon()
+            p[0] = AST.ProgramParts()
+
+
+    def p_program_part(self, p):
+        """program_part : declaration
+                        | instruction
+                        | fundef"""
+        p[0] = p[1]
 
 
     def p_declarations(self, p):
@@ -257,23 +267,6 @@ class Cparser(object):
         else:
             p[0] = p[1]
             p[0].addExpr(p[3])
-
-
-
-    def p_fundefs_opt(self, p):
-        """fundefs_opt : fundefs
-                       | """
-        p[0] = p[1] if len(p) == 2 else AST.Epsilon()
-
-    def p_fundefs(self, p):
-        """fundefs : fundefs fundef
-                   | fundef """
-        if len(p) == 3:
-            p[0] = p[1]
-            p[0].appendFundef(p[2])
-        else:
-            p[0] = AST.Fundefs()
-            p[0].appendFundef(p[1])
 
 
     def p_fundef(self, p):
