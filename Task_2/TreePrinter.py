@@ -37,7 +37,7 @@ class TreePrinter:
 
     @addToClass(AST.Program)
     def printTree(self, level = 0):
-        return printTree(self.head, level) + printTree(self.tail, level)
+        return printTree(self.declarations, level) + printTree(self.instructions_opt, level) + printTree(self.fundefs_opt, level)
 
     @addToClass(AST.Declarations)
     def printTree(self, level = 0):
@@ -118,3 +118,19 @@ class TreePrinter:
     @addToClass(AST.FunCall)
     def printTree(self, level = 0):
         return printTree('FUNCALL', level) + printTree(self.name, level + 1) + printTree(self.args, level + 1)
+
+    @addToClass(AST.Fundefs)
+    def printTree(self, level = 0):
+        return "".join(map(lambda x: printTree(x, level), self.fundefs))
+
+    @addToClass(AST.Fundef)
+    def printTree(self, level = 0):
+        return printTree('FUNDEF', level) + printTree(self.ret, level + 1) + printTree(self.name, level + 1) + printTree(self.args, level + 1) + printTree(self.compound, level + 1)
+
+    @addToClass(AST.ArgsList)
+    def printTree(self, level = 0):
+        return "".join(map(lambda x: printTree(x, level), self.args))
+
+    @addToClass(AST.Arg)
+    def printTree(self, level = 0):
+        return printTree('ARG ' + self.id, level)

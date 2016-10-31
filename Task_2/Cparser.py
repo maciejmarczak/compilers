@@ -45,11 +45,12 @@ class Cparser(object):
 
 
     def p_program(self, p):
-        """program : declarations program
-                   | instructions_opt program
-                   | """
-        if len(p) == 3:
-            p[0] = AST.Program(p[1], p[2])
+        """program : declarations instructions_opt fundefs_opt"""
+        if len(p) == 4:
+            declarations = p[1]
+            instructions_opt = p[2]
+            fundefs_opt = p[3]
+            p[0] = AST.Program(declarations, instructions_opt, fundefs_opt)
         else:
             p[0] = AST.Epsilon()
 
@@ -85,7 +86,9 @@ class Cparser(object):
 
     def p_init(self, p):
         """init : ID '=' expression """
-        p[0] = AST.Init(p[1], p[3])
+        id = p[1]
+        expression = p[3]
+        p[0] = AST.Init(id, expression)
 
 
     def p_instructions_opt(self, p):
@@ -95,7 +98,7 @@ class Cparser(object):
 
     def p_instructions(self, p):
         """instructions : instructions instruction
-                        | instruction """
+                        | instruction"""
         if len(p) == 3:
             p[0] = p[1]
             p[0].appendInstruction(p[2])
@@ -260,23 +263,47 @@ class Cparser(object):
     def p_fundefs_opt(self, p):
         """fundefs_opt : fundefs
                        | """
+        p[0] = p[1] if len(p) == 2 else AST.Epsilon()
 
     def p_fundefs(self, p):
         """fundefs : fundefs fundef
                    | fundef """
+        if len(p) == 3:
+            p[0] = p[1]
+            p[0].appendFundef(p[2])
+        else:
+            p[0] = AST.Fundefs()
+            p[0].appendFundef(p[1])
 
 
     def p_fundef(self, p):
         """fundef : TYPE ID '(' args_list_or_empty ')' compound_instr """
+        ret = p[1]
+        name = p[2]
+        args = p[4]
+        compound = p[6]
+        p[0] = AST.Fundef(ret, name, args, compound)
 
 
     def p_args_list_or_empty(self, p):
         """args_list_or_empty : args_list
                               | """
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = AST.Epsilon()
 
     def p_args_list(self, p):
         """args_list : args_list ',' arg
                      | arg """
+        if len(p) == 4:
+            p[0] = p[1]
+            p[0].appendArg(p[3])
+        else:
+            p[0] = AST.ArgsList()
+            p[0].appendArg(p[1])
+
 
     def p_arg(self, p):
         """arg : TYPE ID """
+        p[0] = AST.Arg(p[1], p[2])

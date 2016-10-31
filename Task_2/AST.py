@@ -13,9 +13,10 @@ class File(Node):
 
 
 class Program(Node):
-    def __init__(self, head, tail):
-        self.head = head
-        self.tail = tail
+    def __init__(self, declarations, instructions_opt, fundefs_opt):
+        self.declarations = declarations
+        self.instructions_opt = instructions_opt
+        self.fundefs_opt = fundefs_opt
 
 
 class Declarations(Node):
@@ -143,6 +144,36 @@ class CompoundInstruction(Node):
 class Condition(Node):
     def __init__(self, expression):
         self.expression = expression
+
+
+class Fundefs(Node):
+    def __init__(self):
+        self.fundefs = []
+
+    def appendFundef(self, fundef):
+        self.fundefs.append(fundef)
+
+
+class Fundef(Node):
+    def __init__(self, ret, name, args, compound):
+        self.ret = ret
+        self.name = name
+        self.args = args
+        self.compound = compound
+
+
+class ArgsList(Node):
+    def __init__(self):
+        self.args = []
+
+    def appendArg(self, arg):
+        self.args.append(arg)
+
+
+class Arg(Node):
+    def __init__(self, type, id):
+        self.type = type
+        self.id = id
 
 
 class Integer(Const):
