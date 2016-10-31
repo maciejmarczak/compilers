@@ -56,6 +56,7 @@ class Cparser(object):
             p[0].appendPart(p[2])
         else:
             p[0] = AST.ProgramParts()
+            p[0].appendPart(p[1])
 
 
     def p_program_part(self, p):
@@ -63,16 +64,6 @@ class Cparser(object):
                         | instruction
                         | fundef"""
         p[0] = p[1]
-
-
-    def p_declarations(self, p):
-        """declarations : declarations declaration
-                        | """
-        if len(p) == 3:
-            p[0] = p[1]
-            p[0].appendDeclaration(p[2])
-        else:
-            p[0] = AST.Declarations()
 
 
     def p_declaration(self, p):
@@ -99,22 +90,6 @@ class Cparser(object):
         id = p[1]
         expression = p[3]
         p[0] = AST.Init(id, expression)
-
-
-    def p_instructions_opt(self, p):
-        """instructions_opt : instructions"""
-        p[0] = AST.Instructions_OPT(p[1]) if len(p) == 2 else AST.Epsilon()
-
-
-    def p_instructions(self, p):
-        """instructions : instructions instruction
-                        | instruction"""
-        if len(p) == 3:
-            p[0] = p[1]
-            p[0].appendInstruction(p[2])
-        else:
-            p[0] = AST.Instructions()
-            p[0].appendInstruction(p[1])
 
 
     def p_instruction(self, p):
@@ -168,10 +143,10 @@ class Cparser(object):
 
 
     def p_repeat_instr(self, p):
-        """repeat_instr : REPEAT instructions UNTIL condition ';' """
-        instructions = p[2]
+        """repeat_instr : REPEAT program_parts UNTIL condition ';' """
+        program_parts = p[2]
         condition = p[4]
-        p[0] = AST.RepeatInstruction(instructions, condition)
+        p[0] = AST.RepeatInstruction(program_parts, condition)
 
 
     def p_return_instr(self, p):
@@ -190,10 +165,9 @@ class Cparser(object):
 
 
     def p_compound_instr(self, p):
-        """compound_instr : '{' declarations instructions_opt '}' """
-        declarations = p[2]
-        instructions_opt = p[3]
-        p[0] = AST.CompoundInstruction(declarations, instructions_opt)
+        """compound_instr : '{' program_parts '}' """
+        program_parts = p[2]
+        p[0] = AST.CompoundInstruction(program_parts)
 
 
     def p_condition(self, p):

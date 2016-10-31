@@ -16,20 +16,13 @@ class Program(Node):
     def __init__(self, content):
         self.content = content
 
+
 class ProgramParts(Node):
     def __init__(self):
         self.parts = []
 
     def appendPart(self, part):
         self.parts.append(part)
-
-
-class Declarations(Node):
-    def __init__(self):
-        self.declarations = []
-
-    def appendDeclaration(self, declaration):
-        self.declarations.append(declaration)
 
 
 class Declaration(Node):
@@ -84,19 +77,6 @@ class Assignment(Node):
         self.expr = expr
 
 
-class Instructions_OPT(Node):
-    def __init__(self, instructions):
-        self.instructions = instructions
-
-
-class Instructions(Node):
-    def __init__(self):
-        self.instructions = []
-
-    def appendInstruction(self, instruction):
-        self.instructions.append(instruction)
-
-
 class PrintInstruction(Node):
     def __init__(self, expressions):
         self.expressions = expressions
@@ -141,14 +121,14 @@ class BreakInstruction(Node):
 
 
 class CompoundInstruction(Node):
-    def __init__(self, declarations, instructions_opt):
-        self.declarations = declarations
-        self.instructions_opt = instructions_opt
+    def __init__(self, program_parts):
+        self.program_parts = program_parts
 
 
 class Condition(Node):
     def __init__(self, expression):
         self.expression = expression
+
 
 class Fundef(Node):
     def __init__(self, ret, name, args, compound):
@@ -174,24 +154,15 @@ class Arg(Node):
 
 class Integer(Const):
     pass
-    #...
 
 
 class Float(Const):
     pass
-    #...
 
 
 class String(Const):
     pass
-    #...
 
 
 class Variable(Node):
     pass
-    #...
-
-
-
-
-# ...
