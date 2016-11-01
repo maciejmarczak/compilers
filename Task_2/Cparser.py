@@ -45,8 +45,9 @@ class Cparser(object):
 
 
     def p_program(self, p):
-        """program : program_parts"""
-        p[0] = p[1]
+        """program : program_parts
+                    | """
+        p[0] = p[1] if len(p) == 2 else AST.Epsilon()
 
     def p_program_parts(self, p):
         """program_parts : program_parts program_part
