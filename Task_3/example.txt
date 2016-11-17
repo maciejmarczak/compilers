@@ -5,10 +5,10 @@ int e = d + 2;
 float k = 2.4;
 int abc = k;
 
-print a + b;
+print a() + b();
 
-int gcd(int m, int n) {
-
+int gcd(int m, int m) {
+int k = 3;
 int res = 0;
 if (m!=n) { 
     if (m > n) 

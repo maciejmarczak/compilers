@@ -7,9 +7,6 @@ def print_message(content, line, msgType='error'):
     print 'line {}\t({}):\t{}'.format(line, msgType, content)
 
 def typeDiffer(definedType, usedType, line, allowPrecisionLoss = True):
-#    if line == 6:
-#       print definedType, usedType, line
-#        raise Exception('abc')
     if definedType == usedType or definedType == 'float' and usedType == 'int':
         return False
     elif allowPrecisionLoss and definedType == 'int' and usedType == 'float':
@@ -196,9 +193,4 @@ class TypeChecker(NodeVisitor):
 
     def visit_LabeledInstr(self, node):
         self.visit(node.instr)
-
-    def visit_Program(self, node):
-        self.visit(node.declarations)
-        self.visit(node.fundefs)
-        self.visit(node.instructions)
 

@@ -190,10 +190,3 @@ class BreakInstr(Node):
 
 class ContinueInstr(Node):
     pass
-
-
-class Program(Node):
-    def __init__(self, declarations, fundefs, instructions):
-        self.declarations = declarations
-        self.fundefs = fundefs
-        self.instructions = instructions

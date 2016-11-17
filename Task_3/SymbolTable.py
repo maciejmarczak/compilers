@@ -1,18 +1,13 @@
 #!/usr/bin/python
-from collections import defaultdict
 
 
-class Symbol():
-    pass
-
-
-class VariableSymbol(Symbol):
+class VariableSymbol:
     def __init__(self, name, type):
         self.name = name
         self.type = type
 
 
-class FunctionSymbol(Symbol):
+class FunctionSymbol:
     def __init__(self, name, type, table):
         self.name = name
         self.type = type
