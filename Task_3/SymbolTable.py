@@ -50,8 +50,3 @@ class SymbolTable(object):
 
     def getParentScope(self):
         return self.parent
-
-
-
-
-

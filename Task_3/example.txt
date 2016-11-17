@@ -1,7 +1,11 @@
-int a = 1.0, c = "sdya";
 int d = 2;
+int jl = 1/2 * (a + d) / e;
+int a = 1.0, c = "sdya";
 int e = d + 2;
-int z = 1/2 * (a + d) / e; 
+float k = 2.4;
+int abc = k;
+
+print a + b;
 
 int gcd(int m, int n) {
 
@@ -24,7 +28,7 @@ int ggg(int a, int b) {
 }
 
 while(a >= b ) {
-	int dupa_blada = ggg();
+	int hh = ggg();
     int c = a();
     a = 1/2*(a+b/a);
 }

@@ -3,25 +3,41 @@ from collections import defaultdict
 from AST import *
 from SymbolTable import SymbolTable, FunctionSymbol, VariableSymbol
 
-ttype = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: None)))
+def print_message(content, line, msgType='error'):
+    print 'line {}\t({}):\t{}'.format(line, msgType, content)
+
+def typeDiffer(definedType, usedType, line, allowPrecisionLoss = True):
+#    if line == 6:
+#       print definedType, usedType, line
+#        raise Exception('abc')
+    if definedType == usedType or definedType == 'float' and usedType == 'int':
+        return False
+    elif allowPrecisionLoss and definedType == 'int' and usedType == 'float':
+        print_message('Expected int, float given. Precision loss is possible', line, 'warning')
+        return False
+    else:
+        return True
+
+
+validTypes = defaultdict(lambda: None)
 for op in ['+', '-', '*', '/', '%', '<', '>', '<<', '>>', '|', '&', '^', '<=', '>=', '==', '!=']:
-    ttype[op]['int']['int'] = 'int'
+    validTypes[(op, 'int', 'int')] = 'int'
 
 for op in ['+', '-', '*', '/']:
-    ttype[op]['int']['float'] = 'float'
-    ttype[op]['float']['int'] = 'float'
-    ttype[op]['float']['float'] = 'float'
+    validTypes[(op, 'int', 'float')] = 'float'
+    validTypes[(op, 'float', 'int')] = 'float'
+    validTypes[(op, 'float', 'float')] = 'float'
 
 for op in ['<', '>', '<=', '>=', '==', '!=']:
-    ttype[op]['int']['float'] = 'int'
-    ttype[op]['float']['int'] = 'int'
-    ttype[op]['float']['float'] = 'int'
+    validTypes[(op, 'int', 'float')] = 'int'
+    validTypes[(op, 'float', 'int')] = 'int'
+    validTypes[(op, 'float', 'float')] = 'int'
 
-ttype['+']['string']['string'] = 'string'
-ttype['*']['string']['int'] = 'string'
+validTypes[('+', 'string', 'string')] = 'string'
+validTypes[('*', 'string', 'int')] = 'string'
 
 for op in ['<', '>', '<=', '>=', '==', '!=']:
-    ttype[op]['string']['string'] = 'int'
+    validTypes[(op, 'string', 'string')] = 'int'
 
 
 class NodeVisitor(object):
@@ -44,11 +60,11 @@ class NodeVisitor(object):
                 elif isinstance(child, Node):
                     self.visit(child)
 
+
                     # simpler version of generic_visit, not so general
                     #def generic_visit(self, node):
                     #    for child in node.children:
                     #        self.visit(child)
-
 
 class TypeChecker(NodeVisitor):
     def __init__(self):
@@ -67,7 +83,7 @@ class TypeChecker(NodeVisitor):
     def visit_Variable(self, node):
         definition = self.table.getGlobal(node.name)
         if definition is None:
-            print "Undefined symbol {} in line {}".format(node.name, node.line)
+            print_message("Undefined symbol {}".format(node.name), node.line)
         else:
             return definition.type
 
@@ -75,24 +91,24 @@ class TypeChecker(NodeVisitor):
         lhs = self.visit(node.lhs)
         rhs = self.visit(node.rhs)
         op = node.op
-        if ttype[op][lhs][rhs] is None:
-            print "Bad expression {} in line {}".format(node.op, node.line)
-        return ttype[op][lhs][rhs]
+        if validTypes[(op, lhs, rhs)] is None:
+            print_message("Invalid expression", node.line)
+        return validTypes[(op, lhs, rhs)]
 
-    def visit_AssignmentInstruction(self, node):
+    def visit_AssignmentInstr(self, node):
         definition = self.table.getGlobal(node.id)
         type = self.visit(node.expr)
         if definition is None:
-            print "Used undefined symbol {} in line {}".format(node.id, node.line)
-        elif type != definition.type and (definition.type != "float" and definition != "int"):
-            print "Bad assignment of {} to {} in line {}.".format(type, definition.type, node.line)
+            print_message("Symbol {} is undefined".format(node.id), node.line)
+        elif typeDiffer(definition.type, type, node.line):
+            print_message("Cannot assign {} to {}".format(type, definition.type), node.line)
 
     def visit_GroupedExpression(self, node):
         return self.visit(node.interior)
 
     def visit_FunctionExpression(self, node):
         if self.table.get(node.name):
-            print "Function {} already defined. Line: {}".format(node.name, node.line)
+            print_message("Function {} is already defined".format(node.name), node.line)
         else:
             function = FunctionSymbol(node.name, node.retType, SymbolTable(self.table, node.name))
             self.table.put(node.name, function)
@@ -104,7 +120,7 @@ class TypeChecker(NodeVisitor):
             self.table = self.table.getParentScope()
             self.actFunc = None
 
-    def visit_CompoundInstruction(self, node):
+    def visit_CompoundInstr(self, node):
         innerScope = SymbolTable(self.table, "innerScope")
         self.table = innerScope
         if node.declarations is not None:
@@ -119,73 +135,69 @@ class TypeChecker(NodeVisitor):
 
     def visit_Argument(self, node):
         if self.table.get(node.name) is not None:
-            print "Argument {} already defined. Line: {}".format(node.name, node.line)
+            print_message("Argument {} is already defined".format(node.name), node.line)
         else:
             self.table.put(node.name, VariableSymbol(node.name, node.type))
 
     def visit_InvocationExpression(self, node):
         funDef = self.table.getGlobal(node.name)
         if funDef is None or not isinstance(funDef, FunctionSymbol):
-            print "Function {} not defined. Line: {}".format(node.name, node.line)
+            print_message("Function {} is undefined".format(node.name), node.line)
         else:
             if node.args is None and funDef.params != []:
-                print "Invalid number of arguments in line {}. Expected {}".\
-                    format(node.line, len(funDef.params))
+                print_message("Function {} expects {} arguments".format(node.name, len(funDef.params)), node.line)
             else:
                 types = [self.visit(x) for x in node.args.children]
                 expectedTypes = funDef.params
-                for actual, expected in zip(types, expectedTypes):
-                    if actual != expected and not (actual == "int" and expected == "float"):
-                        print "Mismatching argument types in line {}. Expected {}, got {}".\
-                            format(node.line, expected, actual)
+                for current, expected in zip(types, expectedTypes):
+                    if typeDiffer(expected, current, node.line):
+                        print_message("Type mismatch: expected {}, got {} ".format(expected, current), node.line)
             return funDef.type
 
-    def visit_ChoiceInstruction(self, node):
+    def visit_ChoiceInstr(self, node):
         self.visit(node.condition)
         self.visit(node.action)
         if node.alternateAction is not None:
             self.visit(node.alternateAction)
 
-    def visit_WhileInstruction(self, node):
+    def visit_WhileInstr(self, node):
         self.visit(node.condition)
         self.visit(node.instruction)
 
-    def visit_RepeatInstruction(self, node):
+    def visit_RepeatInstr(self, node):
         self.visit(node.condition)
         self.visit(node.instructions)
 
-    def visit_ReturnInstruction(self, node):
+    def visit_ReturnInstr(self, node):
         if self.actFunc is None:
-            print "Return placed outside of a function in line {}".format(node.line)
+            print_message("Return must be placed in function scope", node.line)
         else:
             type = self.visit(node.expression)
-            if type != self.actFunc.type and (self.actFunc.type != "float" or type != "int"):
-                print "Invalid return type of {} in line {}. Expected {}".format(type, node.line, self.actFunc.type)
+            if typeDiffer(type, self.actFunc.type, node.line):
+                print_message("Expected {} instead of {} as the type of returned value".format(self.actFunc.type, type), node.line)
 
     def visit_Init(self, node):
         initType = self.visit(node.expr)
-        if initType == self.actType or (initType == "int" and self.actType == "float") or (initType == "float" and self.actType == "int"):
+        if not typeDiffer(self.actType, initType, node.line):
             if self.table.get(node.name) is not None:
-                print "Invalid definition of {} in line: {}. Entity redefined".\
-                    format(node.name, node.line)
+                print_message("{} is already defined".format(node.name), node.line)
             else:
                 self.table.put(node.name, VariableSymbol(node.name, self.actType))
         else:
-            print "Bad assignment of {} to {} in line {}".format(initType, self.actType, node.line)
+            print_message("Cannot assign {} to {} ".format(initType, self.actType), node.line)
 
     def visit_Declaration(self,node):
         self.actType = node.type
         self.visit(node.inits)
         self.actType = ""
 
-    def visit_PrintInstruction(self, node):
+    def visit_PrintInstr(self, node):
         self.visit(node.expr)
 
-    def visit_LabeledInstruction(self, node):
+    def visit_LabeledInstr(self, node):
         self.visit(node.instr)
 
     def visit_Program(self, node):
-        #print "Visiting program"
         self.visit(node.declarations)
         self.visit(node.fundefs)
         self.visit(node.instructions)

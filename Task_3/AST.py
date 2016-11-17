@@ -3,6 +3,13 @@ class Node(object):
     #    return self.printTree()
     pass
 
+class ProgramParts(Node):
+    def __init__(self):
+        self.children = []
+
+    def appendPart(self, part):
+        self.children.append(part)
+
 
 class Const(Node):
     def __init__(self, line, value):
@@ -127,61 +134,61 @@ class InstructionList(Node):
         self.children.append(instr)
 
 
-class PrintInstruction(Node):
+class PrintInstr(Node):
     def __init__(self, line, expr):
         self.expr = expr
         self.line = line
 
 
-class LabeledInstruction(Node):
+class LabeledInstr(Node):
     def __init__(self, id, instr):
         self.id = id
         self.instr = instr
 
 
-class AssignmentInstruction(Node):
+class AssignmentInstr(Node):
     def __init__(self, line, id, expr):
         self.id = id
         self.expr = expr
         self.line = line
 
 
-class CompoundInstruction(Node):
+class CompoundInstr(Node):
     def __init__(self, declarations, instructions):
         self.declarations = declarations
         self.instructions = instructions
 
 
-class ChoiceInstruction(Node):
+class ChoiceInstr(Node):
     def __init__(self, condition, action, alternateAction=None):
         self.condition = condition
         self.action = action
         self.alternateAction = alternateAction
 
 
-class WhileInstruction(Node):
+class WhileInstr(Node):
     def __init__(self, condition, instruction):
         self.condition = condition
         self.instruction = instruction
 
 
-class RepeatInstruction(Node):
+class RepeatInstr(Node):
     def __init__(self, instructions, condition):
         self.instructions = instructions
         self.condition = condition
 
 
-class ReturnInstruction(Node):
+class ReturnInstr(Node):
     def __init__(self, line, expression):
         self.expression = expression
         self.line = line
 
 
-class BreakInstruction(Node):
+class BreakInstr(Node):
     pass
 
 
-class ContinueInstruction(Node):
+class ContinueInstr(Node):
     pass
 
 

@@ -36,10 +36,26 @@ class Cparser(object):
 
 
     def p_program(self, p):
-        """program : declarations fundefs instructions"""
-        declarations = None if len(p[1].children) == 0 else p[1]
-        fundefs = None if len(p[2].children) == 0 else p[2]
-        p[0] = AST.Program(declarations, fundefs, p[3])
+        """program : program_parts
+                    | """
+        p[0] = p[1]
+
+    def p_program_parts(self, p):
+        """program_parts : program_parts program_part
+                        | program_part"""
+        if len(p) == 3:
+            p[0] = p[1]
+            p[0].appendPart(p[2])
+        else:
+            p[0] = AST.ProgramParts()
+            p[0].appendPart(p[1])
+
+
+    def p_program_part(self, p):
+        """program_part : declaration
+                        | instruction
+                        | fundef"""
+        p[0] = p[1]
 
     def p_declarations(self, p):
         """declarations : declarations declaration
@@ -101,19 +117,19 @@ class Cparser(object):
         """print_instr : PRINT expression ';'
                        | PRINT error ';' """
         expr = p[2]
-        p[0] = AST.PrintInstruction(p.lineno(1), expr)
+        p[0] = AST.PrintInstr(p.lineno(1), expr)
     
     def p_labeled_instr(self, p):
         """labeled_instr : ID ':' instruction """
         id = p[1]
         instruction = p[3]
-        p[0] = AST.LabeledInstruction(p.lineno(1), id, instruction)
+        p[0] = AST.LabeledInstr(p.lineno(1), id, instruction)
 
     def p_assignment(self, p):
         """assignment : ID '=' expression ';' """
         id = p[1]
         expr = p[3]
-        p[0] = AST.AssignmentInstruction(p.lineno(1), id, expr)
+        p[0] = AST.AssignmentInstr(p.lineno(1), id, expr)
     
     def p_choice_instr(self, p):
         """choice_instr : IF '(' condition ')' instruction  %prec IFX
@@ -123,40 +139,40 @@ class Cparser(object):
         condition = p[3]
         action = p[5]
         alternateAction = None if len(p) < 8 else p[7]
-        p[0] = AST.ChoiceInstruction(condition, action, alternateAction)
+        p[0] = AST.ChoiceInstr(condition, action, alternateAction)
 
     def p_while_instr(self, p):
         """while_instr : WHILE '(' condition ')' instruction
                        | WHILE '(' error ')' instruction """
         condition = p[3]
         instruction = p[5]
-        p[0] = AST.WhileInstruction(condition, instruction)
+        p[0] = AST.WhileInstr(condition, instruction)
 
     def p_repeat_instr(self, p):
         """repeat_instr : REPEAT instructions UNTIL condition ';' """
         instructions = p[2]
         condition = p[4]
-        p[0] = AST.RepeatInstruction(instructions, condition)
+        p[0] = AST.RepeatInstr(instructions, condition)
     
     def p_return_instr(self, p):
         """return_instr : RETURN expression ';' """
         expression = p[2]
-        p[0] = AST.ReturnInstruction(p.lineno(1), expression)
+        p[0] = AST.ReturnInstr(p.lineno(1), expression)
     
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
-        p[0] = AST.ContinueInstruction()
+        p[0] = AST.ContinueInstr()
     
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
-        p[0] = AST.BreakInstruction()
+        p[0] = AST.BreakInstr()
  
     def p_compound_instr(self, p):
         """compound_instr : '{' declarations instructions '}' """
         if len(p[2].children) == 0:
-            p[0] = AST.CompoundInstruction(p[2], p[3])
+            p[0] = AST.CompoundInstr(p[2], p[3])
         else:
-            p[0] = AST.CompoundInstruction(p[2], p[3])
+            p[0] = AST.CompoundInstr(p[2], p[3])
         
     def p_condition(self, p):
         """condition : expression"""
@@ -230,16 +246,7 @@ class Cparser(object):
         else:
             p[0] = AST.ExpressionList()
             p[0].addExpression(p[1])
-    
-    
-    def p_fundefs(self, p):
-        """fundefs : fundef fundefs
-                   |  """
-        if len(p) == 3:
-            p[0] = p[2]
-            p[0].addFunction(p[1])
-        else:
-            p[0] = AST.FunctionExpressionList()
+
 
     def p_fundef(self, p):
         """fundef : TYPE ID '(' args_list_or_empty ')' compound_instr """
