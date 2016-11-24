@@ -30,7 +30,7 @@ class Interpreter(object):
     #def visit(self, node):
     #    return node.value
 
-    @when(AST.WhileInstruction)
+    @when(AST.WhileInstr)
     def visit(self, node):
         while node.condition.accept(self):
             try:
@@ -40,7 +40,7 @@ class Interpreter(object):
             except ContinueException:
                 pass
 
-    @when(AST.RepeatInstruction)
+    @when(AST.RepeatInstr)
     def visit(self, node):
         while True:
             try:
@@ -52,7 +52,7 @@ class Interpreter(object):
             except ContinueException:
                 pass
 
-    @when(AST.ChoiceInstruction)
+    @when(AST.ChoiceInstr)
     def visit(self, node):
         if node.condition.accept(self):
             return node.action.accept(self)
@@ -80,7 +80,7 @@ class Interpreter(object):
             child.accept(self)
 
 
-    @when(AST.CompoundInstruction)
+    @when(AST.CompoundInstr)
     def visit(self, node):
         node.declarations.accept(self)
         node.instructions.accept(self)
@@ -118,21 +118,19 @@ class Interpreter(object):
             child.accept(self)
 
 
-    @when(AST.AssignmentInstruction)
+    @when(AST.AssignmentInstr)
     def visit(self, node):
         expr_accept = node.expr.accept(self)
         self.memoryStack.set(node.id, expr_accept)
         return expr_accept
 
 
-    @when(AST.BreakInstruction)
+    @when(AST.LoopControlInstr)
     def visit(self, node):
-        raise BreakException()
-
-    @when(AST.ContinueInstruction)
-    def visit(self, node):
-        raise ContinueException()
-
+        if node.type == 'Break':
+            raise BreakException()
+        elif node.type == 'Continue':
+            raise ContinueException()
 
     @when(AST.Declaration)
     def visit(self, node):
@@ -173,24 +171,23 @@ class Interpreter(object):
     def visit(self, node):
         return int(node.value);
 
-    @when(AST.LabeledInstruction)
+    @when(AST.LabeledInstr)
     def visit(self, node):
-        pass#####################################################################
+        pass
 
 
-    @when(AST.PrintInstruction)
+    @when(AST.PrintInstr)
     def visit(self, node):
         print node.expr.accept(self)
 
 
-    @when(AST.Program)
+    @when(AST.ProgramParts)
     def visit(self, node):
-        node.declarations.accept(self)
-        node.fundefs.accept(self)
-        node.instructions.accept(self)
+        for p in node.children:
+            p.accept(self)
 
 
-    @when(AST.ReturnInstruction)
+    @when(AST.ReturnInstr)
     def visit(self, node):
         value = node.expression.accept(self)
         raise ReturnValueException(value)

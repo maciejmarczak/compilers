@@ -2,6 +2,13 @@ class Node(object):
     def accept(self, visitor):
         return visitor.visit(self)
 
+class ProgramParts(Node):
+    def __init__(self):
+        self.children = []
+
+    def appendPart(self, part):
+        self.children.append(part)
+
 
 class Const(Node):
     def __init__(self, line, value):
@@ -55,10 +62,7 @@ class FunctionExpression(Node):
     def __init__(self, retType, name, args, body):
         self.retType = retType
         self.name = name
-        if args:
-            self.args = args
-        else:
-            self.args = ArgumentList()
+        self.args = args
         self.body = body
 
 
@@ -67,7 +71,7 @@ class FunctionExpressionList(Node):
         self.children = []
 
     def addFunction(self, fundef):
-        self.children = [fundef] + self.children
+        self.children.append(fundef)
 
 
 class DeclarationList(Node):
@@ -87,13 +91,10 @@ class Declaration(Node):
 class InvocationExpression(Node):
     def __init__(self, line, name, args):
         self.name = name
-        if args:
-            self.args = args
-        else:
-            self.args = ExpressionList()
+        self.args = args
         self.line = line
 
-
+   
 class Argument(Node):
     def __init__(self, line, type, name):
         self.type = type
@@ -104,7 +105,7 @@ class Argument(Node):
 class ArgumentList(Node):
     def __init__(self):
         self.children = []
-
+        
     def addArgument(self, arg):
         self.children.append(arg)
 
@@ -112,7 +113,7 @@ class ArgumentList(Node):
 class InitList(Node):
     def __init__(self):
         self.children = []
-
+        
     def addInit(self, init):
         self.children.append(init)
 
@@ -127,71 +128,62 @@ class Init(Node):
 class InstructionList(Node):
     def __init__(self):
         self.children = []
-
+    
     def addInstruction(self, instr):
         self.children.append(instr)
 
 
-class PrintInstruction(Node):
+class PrintInstr(Node):
     def __init__(self, line, expr):
         self.expr = expr
         self.line = line
 
 
-class LabeledInstruction(Node):
+class LabeledInstr(Node):
     def __init__(self, id, instr):
         self.id = id
         self.instr = instr
 
 
-class AssignmentInstruction(Node):
+class AssignmentInstr(Node):
     def __init__(self, line, id, expr):
         self.id = id
         self.expr = expr
         self.line = line
 
 
-class CompoundInstruction(Node):
+class CompoundInstr(Node):
     def __init__(self, declarations, instructions):
         self.declarations = declarations
         self.instructions = instructions
 
 
-class ChoiceInstruction(Node):
+class ChoiceInstr(Node):
     def __init__(self, condition, action, alternateAction=None):
         self.condition = condition
         self.action = action
         self.alternateAction = alternateAction
 
 
-class WhileInstruction(Node):
+class WhileInstr(Node):
     def __init__(self, condition, instruction):
         self.condition = condition
         self.instruction = instruction
 
 
-class RepeatInstruction(Node):
+class RepeatInstr(Node):
     def __init__(self, instructions, condition):
         self.instructions = instructions
         self.condition = condition
 
 
-class ReturnInstruction(Node):
+class ReturnInstr(Node):
     def __init__(self, line, expression):
         self.expression = expression
         self.line = line
 
 
-class BreakInstruction(Node):
-    pass
-
-
-class ContinueInstruction(Node):
-    pass
-
-
-class Program(Node):
-    def __init__(self, declarations, fundefs, instructions):
-        self.declarations = declarations
-        self.fundefs = fundefs
-        self.instructions = instructions
+class LoopControlInstr(Node):
+    def __init__(self, line, type):
+        self.type = type
+        self.line = line
