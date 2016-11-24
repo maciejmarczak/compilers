@@ -67,6 +67,7 @@ class TypeChecker(NodeVisitor):
     def __init__(self):
         self.table = SymbolTable(None, "root")
         self.actType = ""
+        self.loopScope = False
 
     def visit_Integer(self, node):
         return 'int'
@@ -159,11 +160,22 @@ class TypeChecker(NodeVisitor):
 
     def visit_WhileInstr(self, node):
         self.visit(node.condition)
-        self.visit(node.instruction)
+        if self.loopScope:
+            self.visit(node.instruction)
+        else:
+            self.loopScope = True
+            self.visit(node.instruction)
+            self.loopScope = False
 
     def visit_RepeatInstr(self, node):
+        if self.loopScope:
+            self.visit(node.instructions)
+        else:
+            self.loopScope = True
+            self.visit(node.instructions)
+            self.loopScope = False
+
         self.visit(node.condition)
-        self.visit(node.instructions)
 
     def visit_ReturnInstr(self, node):
         if self.actFunc is None:
@@ -193,4 +205,8 @@ class TypeChecker(NodeVisitor):
 
     def visit_LabeledInstr(self, node):
         self.visit(node.instr)
+
+    def visit_LoopControlInstr(self, node):
+        if not self.loopScope:
+            print_message("{} outside loop".format(node.type), node.line)
 

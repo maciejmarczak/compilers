@@ -184,9 +184,7 @@ class ReturnInstr(Node):
         self.line = line
 
 
-class BreakInstr(Node):
-    pass
-
-
-class ContinueInstr(Node):
-    pass
+class LoopControlInstr(Node):
+    def __init__(self, line, type):
+        self.type = type
+        self.line = line

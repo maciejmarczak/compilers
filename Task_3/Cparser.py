@@ -153,27 +153,27 @@ class Cparser(object):
         instructions = p[2]
         condition = p[4]
         p[0] = AST.RepeatInstr(instructions, condition)
-    
+
     def p_return_instr(self, p):
         """return_instr : RETURN expression ';' """
         expression = p[2]
         p[0] = AST.ReturnInstr(p.lineno(1), expression)
-    
+
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
-        p[0] = AST.ContinueInstr()
-    
+        p[0] = AST.LoopControlInstr(p.lineno(1), 'Continue')
+
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
-        p[0] = AST.BreakInstr()
- 
+        p[0] = AST.LoopControlInstr(p.lineno(1), 'Break')
+
     def p_compound_instr(self, p):
         """compound_instr : '{' declarations instructions '}' """
         if len(p[2].children) == 0:
             p[0] = AST.CompoundInstr(p[2], p[3])
         else:
             p[0] = AST.CompoundInstr(p[2], p[3])
-        
+
     def p_condition(self, p):
         """condition : expression"""
         p[0] = p[1]
