@@ -145,9 +145,9 @@ class TypeChecker(NodeVisitor):
         if funDef is None or not isinstance(funDef, FunctionSymbol):
             self.print_message("Function {} is undefined".format(node.name), node.line)
         else:
-            if node.args is None and funDef.params != []:
+            if (node.args is None and funDef.params != []) or (node.args is not None and len(node.args.children) != len(funDef.params)):
                 self.print_message("Function {} expects {} arguments".format(node.name, len(funDef.params)), node.line)
-            else:
+            elif node.args is not None:
                 types = [self.visit(x) for x in node.args.children]
                 expectedTypes = funDef.params
                 for current, expected in zip(types, expectedTypes):
@@ -212,4 +212,3 @@ class TypeChecker(NodeVisitor):
     def visit_LoopControlInstr(self, node):
         if not self.loopScope:
             self.print_message("{} outside loop".format(node.type), node.line)
-

@@ -97,8 +97,9 @@ class Interpreter(object):
     def visit(self, node):
         fun = self.globalMem.get(node.name)#EXCEPTION
         functionMem = Memory(node.name)
-        for argExpr, actualArg in zip(node.args.children, fun.args.children):
-            functionMem.put(actualArg.accept(self), argExpr.accept(self))
+        if (fun.args is not None):
+            for argExpr, actualArg in zip(node.args.children, fun.args.children):
+                functionMem.put(actualArg.accept(self), argExpr.accept(self))
         self.globalMem.push(functionMem)
         try:
             fun.body.accept(self)
@@ -201,7 +202,3 @@ class Interpreter(object):
     @when(AST.Variable)
     def visit(self, node):
         return self.globalMem.get(node.name)
-
-
-
-

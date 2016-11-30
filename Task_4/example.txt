@@ -1,5 +1,12 @@
 int a = 0, b = 0, c = 0;
 
+int f() {
+    int z = 333;
+    z = z * 3;
+
+    return z;
+}
+
 int fact2(int x) {
     int c = 1, res = 1;
 
@@ -19,7 +26,7 @@ int fib(int nth){
 }
 
 print fact2(6);
-
+print f();
 
 while(a < 100 ) {
     if(a==15)
