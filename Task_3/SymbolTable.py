@@ -13,6 +13,7 @@ class FunctionSymbol:
         self.type = type
         self.params = []
         self.table = table
+        self.returnPresent = False
 
     def extractParams(self):
         self.params = [x.type for x in self.table.entries.values()]
