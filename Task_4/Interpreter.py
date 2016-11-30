@@ -8,7 +8,7 @@ from visit import *
 
 class Interpreter(object):
     def __init__(self):
-        self.memoryStack = MemoryStack()
+        self.globalMem = MemoryStack()
 
     @on('node')
     def visit(self, node):
@@ -89,23 +89,23 @@ class Interpreter(object):
 
     @when(AST.FunctionExpression)
     def visit(self, node):
-        self.memoryStack.peek().put(node.name, node)
+        self.globalMem.peek().put(node.name, node)
 
 
 
     @when(AST.InvocationExpression)
     def visit(self, node):
-        fun = self.memoryStack.get(node.name)#EXCEPTION
-        funMemory = Memory(node.name)
+        fun = self.globalMem.get(node.name)#EXCEPTION
+        functionMem = Memory(node.name)
         for argExpr, actualArg in zip(node.args.children, fun.args.children):
-            funMemory.put(actualArg.accept(self), argExpr.accept(self))
-        self.memoryStack.push(funMemory)
+            functionMem.put(actualArg.accept(self), argExpr.accept(self))
+        self.globalMem.push(functionMem)
         try:
             fun.body.accept(self)
         except ReturnValueException as e:
             return e.value
         finally:
-            self.memoryStack.pop()
+            self.globalMem.pop()
 
     @when(AST.Argument)
     def visit(self, node):
@@ -121,7 +121,7 @@ class Interpreter(object):
     @when(AST.AssignmentInstr)
     def visit(self, node):
         expr_accept = node.expr.accept(self)
-        self.memoryStack.set(node.id, expr_accept)
+        self.globalMem.set(node.id, expr_accept)
         return expr_accept
 
 
@@ -157,7 +157,7 @@ class Interpreter(object):
     @when(AST.Init)
     def visit(self, node):
         expr_accept = node.expr.accept(self)
-        self.memoryStack.peek().put(node.name, expr_accept)
+        self.globalMem.peek().put(node.name, expr_accept)
         return expr_accept
 
 
@@ -200,7 +200,7 @@ class Interpreter(object):
 
     @when(AST.Variable)
     def visit(self, node):
-        return self.memoryStack.get(node.name)
+        return self.globalMem.get(node.name)
 
 
 

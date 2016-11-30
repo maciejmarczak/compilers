@@ -43,3 +43,9 @@ repeat {
     print fib(a);
 } until (a>5);
 
+int fun(int a) {
+    print "k";
+    return 1;
+}
+
+int asdsd = fun(20);

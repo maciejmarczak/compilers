@@ -2,31 +2,28 @@ class Memory:
     def __init__(self, name):
     # memory name
         self.name = name
-        self.dict = {}
+        self.hash = {}
 
     def has_key(self, name):
     # variable name
-        return name in self.dict
+        return name in self.hash
 
     def get(self, name):
     # get from memory current value of variable <name>
         if self.has_key(name):
-            return self.dict[name]
+            return self.hash[name]
         return None
 
     def put(self, name, value):
     # puts into memory current value of variable <name>
-        self.dict[name] = value
+        self.hash[name] = value
 
 
 class MemoryStack:
-    def __init__(self, memory=None):
+    def __init__(self, memory=Memory("root")):
     # initialize memory stack with memory <memory>
         self.stack = []
-        if memory is not None:
-            self.stack.append(memory)
-        else:
-            self.stack.append(Memory("toplevel"))
+        self.stack.append(memory)
 
     def get(self, name):             # get from memory stack current value of variable <name>
         indices = range(len(self.stack))
