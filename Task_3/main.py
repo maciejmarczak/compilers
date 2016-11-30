@@ -20,4 +20,3 @@ if __name__ == '__main__':
     ast = parser.parse(text, lexer=Cparser.scanner)
     typeChecker = TypeChecker()
     typeChecker.visit(ast)   # or alternatively ast.accept(typeChecker)
-    print "Type checking finished"

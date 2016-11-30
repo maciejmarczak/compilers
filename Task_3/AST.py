@@ -13,8 +13,8 @@ class ProgramParts(Node):
 
 class Const(Node):
     def __init__(self, line, value):
-        self.value = value
         self.line = line
+        self.value = value
 
 
 class Integer(Const):
@@ -34,16 +34,16 @@ class String(Const):
 
 class Variable(Node):
     def __init__(self, line, name):
-        self.name = name
         self.line = line
+        self.name = name
 
 
 class BinExpr(Node):
     def __init__(self, line, lhs, op, rhs):
+        self.line = line
         self.lhs = lhs
         self.op = op
         self.rhs = rhs
-        self.line = line
 
 
 class ExpressionList(Node):
@@ -60,7 +60,8 @@ class GroupedExpression(Node):
 
 
 class FunctionExpression(Node):
-    def __init__(self, retType, name, args, body):
+    def __init__(self, line, retType, name, args, body):
+        self.line = line
         self.retType = retType
         self.name = name
         self.args = args
@@ -91,22 +92,22 @@ class Declaration(Node):
 
 class InvocationExpression(Node):
     def __init__(self, line, name, args):
+        self.line = line
         self.name = name
         self.args = args
-        self.line = line
 
-   
+
 class Argument(Node):
     def __init__(self, line, type, name):
+        self.line = line
         self.type = type
         self.name = name
-        self.line = line
 
 
 class ArgumentList(Node):
     def __init__(self):
         self.children = []
-        
+
     def addArgument(self, arg):
         self.children.append(arg)
 
@@ -114,30 +115,30 @@ class ArgumentList(Node):
 class InitList(Node):
     def __init__(self):
         self.children = []
-        
+
     def addInit(self, init):
         self.children.append(init)
 
 
 class Init(Node):
     def __init__(self, line, name, expr):
+        self.line = line
         self.name = name
         self.expr = expr
-        self.line = line
 
 
 class InstructionList(Node):
     def __init__(self):
         self.children = []
-    
+
     def addInstruction(self, instr):
         self.children.append(instr)
 
 
 class PrintInstr(Node):
     def __init__(self, line, expr):
-        self.expr = expr
         self.line = line
+        self.expr = expr
 
 
 class LabeledInstr(Node):
@@ -148,9 +149,9 @@ class LabeledInstr(Node):
 
 class AssignmentInstr(Node):
     def __init__(self, line, id, expr):
+        self.line = line
         self.id = id
         self.expr = expr
-        self.line = line
 
 
 class CompoundInstr(Node):
@@ -180,11 +181,11 @@ class RepeatInstr(Node):
 
 class ReturnInstr(Node):
     def __init__(self, line, expression):
-        self.expression = expression
         self.line = line
+        self.expression = expression
 
 
 class LoopControlInstr(Node):
     def __init__(self, line, type):
-        self.type = type
         self.line = line
+        self.type = type

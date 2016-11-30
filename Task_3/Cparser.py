@@ -65,9 +65,9 @@ class Cparser(object):
             p[0].addDeclaration(p[2])
         else:
             p[0] = AST.DeclarationList()
-                     
+
     def p_declaration(self, p):
-        """declaration : TYPE inits ';' 
+        """declaration : TYPE inits ';'
                        | error ';' """
         if len(p) == 4:
             type = p[1]
@@ -89,7 +89,7 @@ class Cparser(object):
         id = p[1]
         expr = p[3]
         p[0] = AST.Init(p.lineno(1), id, expr)
-    
+
     def p_instructions(self, p):
         """instructions : instructions instruction
                         | instruction """
@@ -99,26 +99,26 @@ class Cparser(object):
         else:
             p[0] = AST.InstructionList()
             p[0].addInstruction(p[1])
-    
+
     def p_instruction(self, p):
         """instruction : print_instr
                        | labeled_instr
                        | assignment
                        | choice_instr
-                       | while_instr 
-                       | repeat_instr 
+                       | while_instr
+                       | repeat_instr
                        | return_instr
                        | break_instr
                        | continue_instr
                        | compound_instr"""
         p[0] = p[1]
-    
+
     def p_print_instr(self, p):
         """print_instr : PRINT expression ';'
                        | PRINT error ';' """
         expr = p[2]
         p[0] = AST.PrintInstr(p.lineno(1), expr)
-    
+
     def p_labeled_instr(self, p):
         """labeled_instr : ID ':' instruction """
         id = p[1]
@@ -130,7 +130,7 @@ class Cparser(object):
         id = p[1]
         expr = p[3]
         p[0] = AST.AssignmentInstr(p.lineno(1), id, expr)
-    
+
     def p_choice_instr(self, p):
         """choice_instr : IF '(' condition ')' instruction  %prec IFX
                         | IF '(' condition ')' instruction ELSE instruction
@@ -161,11 +161,11 @@ class Cparser(object):
 
     def p_continue_instr(self, p):
         """continue_instr : CONTINUE ';' """
-        p[0] = AST.LoopControlInstr(p.lineno(1), 'Continue')
+        p[0] = AST.LoopControlInstr(p.lineno(1), 'continue')
 
     def p_break_instr(self, p):
         """break_instr : BREAK ';' """
-        p[0] = AST.LoopControlInstr(p.lineno(1), 'Break')
+        p[0] = AST.LoopControlInstr(p.lineno(1), 'break')
 
     def p_compound_instr(self, p):
         """compound_instr : '{' declarations instructions '}' """
@@ -250,15 +250,15 @@ class Cparser(object):
 
     def p_fundef(self, p):
         """fundef : TYPE ID '(' args_list_or_empty ')' compound_instr """
-        p[0] = AST.FunctionExpression(p[1], p[2], p[4], p[6])
-    
+        p[0] = AST.FunctionExpression(p.lineno(1), p[1], p[2], p[4], p[6])
+
     def p_args_list_or_empty(self, p):
         """args_list_or_empty : args_list
                               | """
         p[0] = None if len(p) == 0 else p[1]
 
     def p_args_list(self, p):
-        """args_list : args_list ',' arg 
+        """args_list : args_list ',' arg
                      | arg """
         if len(p) == 4:
             p[0] = AST.ArgumentList() if p[1] is None else p[1]
@@ -266,10 +266,9 @@ class Cparser(object):
         else:
             p[0] = AST.ArgumentList()
             p[0].addArgument(p[1])
-            
+
     def p_arg(self, p):
         """arg : TYPE ID """
         type = p[1]
         name = p[2]
         p[0] = AST.Argument(p.lineno(1), type, name)
-
