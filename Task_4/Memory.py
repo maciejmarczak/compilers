@@ -60,6 +60,8 @@ class MemoryStack:
         for mem in reversed(stack):
             if mem.has_key(name):
                 return mem.get(name)
+            if mem.name == FUN_MEM:
+                break
         return None
 
     @staticmethod
@@ -68,4 +70,6 @@ class MemoryStack:
             if mem.has_key(name):
                 mem.put(name, value)
                 return True
+            if mem.name == FUN_MEM:
+                break
         return False
