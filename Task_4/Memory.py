@@ -1,4 +1,7 @@
-from Ttype import MemoryType
+# memory types
+FUN_MEM = 'fun_mem'
+GLOBAL_MEM = 'global_mem'
+COMPOUND_MEM = 'compound_mem'
 
 
 class Memory:
@@ -18,55 +21,51 @@ class Memory:
 
 class MemoryStack:
     def __init__(self, memory):  # initialize memory stack with memory <memory>
-        self.global_memory = list()
-        self.function_memory = list()
-        self.lastGlobal = -1  # position of last "global" frame on stack - used to handle "special" case from labs
-        self.inFunction = 0  # number of function calls on stack
+        self.global_mem = list()
+        self.fun_mem = list()
+        self.recursion_level = 0  # number of function calls on stack
         self.push(memory)
 
     def get(self, name):  # gets from memory stack current value of variable <name>
-        in_function = False
-        for mem in reversed(self.function_memory):
-            if in_function:
-                break
-            elif mem.name == MemoryType.FUNCTION:
-                in_function = True
-            if mem.has_key(name):
-                return mem.get(name)
-
-        for mem in reversed(self.global_memory):
-            if mem.has_key(name):
-                return mem.get(name)
-
-        return None
+        el = self.find_in_stack(self.fun_mem, name)
+        return el if el is not None else self.find_in_stack(self.global_mem, name)
 
     def insert(self, name, value):  # inserts into memory stack variable <name> with value <value>
-        self.get_memory_stack()[-1].put(name, value)
+        self.mem_stack()[-1].put(name, value)
 
     def set(self, name, value):  # sets variable <name> to value <value>
-        in_function = False
-        for mem in reversed(self.function_memory):
-            if in_function:
-                break
-            elif mem.name == MemoryType.FUNCTION:
-                in_function = True
-            if mem.has_key(name):
-                mem.put(name, value)
-                return
-
-        for mem in reversed(self.global_memory):
-            if mem.has_key(name):
-                mem.put(name, value)
-                break
+        if self.set_in_stack(self.fun_mem, name, value):
+            return
+        else:
+            self.set_in_stack(self.global_mem, name, value)
 
     def push(self, memory):  # pushes memory <memory> onto the stack
-        if memory.name == MemoryType.FUNCTION:
-            self.function_memory.append(memory)
+        if memory.name == FUN_MEM:
+            self.fun_mem.append(memory)
         else:
-            self.get_memory_stack().append(memory)
+            self.mem_stack().append(memory)
 
     def pop(self):  # pops the top memory from the stack
-        return self.get_memory_stack().pop()
+        return self.mem_stack().pop()
 
-    def get_memory_stack(self):
-        return self.global_memory if len(self.function_memory) == 0 else self.function_memory
+    # if we're currently inside a fun stack, return it; otherwise return global memory
+    def mem_stack(self):
+        if len(self.fun_mem) > 0:
+            return self.fun_mem
+        else:
+            return self.global_mem
+
+    @staticmethod
+    def find_in_stack(stack, name):
+        for mem in reversed(stack):
+            if mem.has_key(name):
+                return mem.get(name)
+        return None
+
+    @staticmethod
+    def set_in_stack(stack, name, value):
+        for mem in reversed(stack):
+            if mem.has_key(name):
+                mem.put(name, value)
+                return True
+        return False

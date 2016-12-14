@@ -8,7 +8,7 @@ from TypeChecker import TypeChecker
 
 if __name__ == '__main__':
 
-    filename = sys.argv[1] if len(sys.argv) > 1 else "tests/scopes4.in"
+    filename = sys.argv[1] if len(sys.argv) > 1 else "ex2.txt"
     try:
         test_file = open(filename, "r")
     except IOError:

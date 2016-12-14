@@ -8,4 +8,6 @@ int funcfun(int x) {
     return x;
 }
 
-print funcfun(10);
+print funcfun(10), "test";
+
+print "1", "2";

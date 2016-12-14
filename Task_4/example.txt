@@ -13,6 +13,9 @@ else
     res = m;
 
 print res;
+print "Hello, I am working!";
 return res;
 }
+
+gcd(2, 10);
 

@@ -14,12 +14,6 @@ class ScopeType:
     NESTED = 'nested'
 
 
-class MemoryType:
-    FUNCTION = 'function_memory'
-    GLOBAL = 'global_memory'
-    NESTED = 'nested_memory'
-
-
 arithmetic_operators = ['+', '-', '*', '/']
 relation_operators = ['<', '<=', '>', '>=', '==', '!=']
 binary_operators = ['||', '&&', '|', '^', '&', '<<', '>>']

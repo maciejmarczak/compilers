@@ -1,4 +1,3 @@
-
 class Node(object):
     def __str__(self):
         return self.printTree()
@@ -7,7 +6,7 @@ class Node(object):
         return visitor.visit(self)
 
 
-# sections : sections section | <empty> from new grammar
+# sections : sections section | <empty>
 class Program(Node):
     def __init__(self, sections):
         self.sections = sections
@@ -27,7 +26,6 @@ class Init(Node):
 
 
 # instructions
-
 class PrintInstr(Node):
     def __init__(self, expressions):
         self.expressions = expressions
@@ -91,7 +89,6 @@ class CompoundInstr(Node):
 
 
 # fundef and expressions
-
 class FunDef(Node):
     def __init__(self, return_type, name, args, statements, lineno, end_lineno):
         self.return_type = return_type
@@ -132,7 +129,6 @@ class BinExpr(Node):
 
 
 # Consts
-
 class Const(Node):
     def __init__(self, value):
         self.value = value
