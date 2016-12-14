@@ -1,207 +1,187 @@
-from optparse import _parse_int
+import sys
+
 import AST
-import SymbolTable
-from Memory import *
+from ExpressionEvaluator import *
 from Exceptions import *
+from Memory import *
+from Ttype import Types
 from visit import *
+
+sys.setrecursionlimit(10000)
+
+ARG_NAME = 'arg_name'
+ARG_TYPE = 'arg_type'
 
 
 class Interpreter(object):
     def __init__(self):
-        self.globalMem = MemoryStack()
+        self.global_memory = Memory(MemoryType.GLOBAL)
+        self.memory_stack = MemoryStack(self.global_memory)
+        self.declared_type = None
+        self.evaluator = ExpressionEvaluator()
 
-    @on('node')
+    @on("node")
     def visit(self, node):
         pass
 
-    @when(AST.BinExpr)
+    @when(AST.Program)
     def visit(self, node):
-        r1 = node.lhs.accept(self)
-        r2 = node.rhs.accept(self)
-        return eval("a" + node.op + "b", {"a": r1, "b": r2})
+        for section in node.sections:
+            section.accept(self)
 
-    @when(AST.GroupedExpression)
+    @when(AST.Declaration)
     def visit(self, node):
-        return node.interior.accept(self)
+        self.declared_type = node.type_name
+        for init in node.inits:
+            init.accept(self)
 
+    @when(AST.Init)
+    def visit(self, node):
+        expression_value = node.expression.accept(self)
+        if self.declared_type == Types.INT:
+            expression_value = int(expression_value)
+        elif self.declared_type == Types.FLOAT:
+            expression_value = float(expression_value)
 
-    #! mamy specjalizowane wersje
-    #@when(AST.Const)
-    #def visit(self, node):
-    #    return node.value
+        self.memory_stack.insert(node.identifier, expression_value)
+        return expression_value
+
+    @when(AST.PrintInstr)
+    def visit(self, node):
+        for expression in node.expressions:
+            print(expression.accept(self))
+
+    @when(AST.LabeledInstr)
+    def visit(self, node):
+        node.instr.accept(self)
+
+    @when(AST.Assignment)
+    def visit(self, node):
+        variable_name = node.identifier
+        expression_value = node.expression.accept(self)
+        expression_value = type(self.memory_stack.get(variable_name))(expression_value)
+        self.memory_stack.set(variable_name, expression_value)
+        return expression_value
+
+    @when(AST.ChoiceInstr)
+    def visit(self, node):
+        if node.condition.accept(self):
+            node.if_instr.accept(self)
+        elif node.else_instr is not None:
+            node.else_instr.accept(self)
 
     @when(AST.WhileInstr)
     def visit(self, node):
         while node.condition.accept(self):
             try:
-                node.instruction.accept(self)
+                node.instr.accept(self)
+            except ContinueException:
+                continue
             except BreakException:
                 break
-            except ContinueException:
-                pass
 
     @when(AST.RepeatInstr)
     def visit(self, node):
-        while True:
+        self.memory_stack.push(Memory(MemoryType.NESTED))
+        first_exec = True
+        while not node.condition.accept(self) or first_exec:
+            first_exec = False
             try:
-                node.instructions.accept(self)
-                if node.condition.accept(self):
-                    break
+                for instruction in node.instrs:
+                    instruction.accept(self)
+            except ContinueException:
+                continue
             except BreakException:
                 break
-            except ContinueException:
-                pass
+            except ReturnValueException as e:
+                self.memory_stack.pop()
+                raise e
 
-    @when(AST.ChoiceInstr)
+        self.memory_stack.pop()
+
+    @when(AST.ReturnInstr)
     def visit(self, node):
-        if node.condition.accept(self):
-            return node.action.accept(self)
-        elif node.alternateAction:
-            return node.alternateAction.accept(self)
-        else:
-            pass
+        raise ReturnValueException(node.expression.accept(self))
 
-    @when(AST.ExpressionList)
+    @when(AST.ContinueInstr)
     def visit(self, node):
-        for child in node.children:
-            child.accept(self)
+        raise ContinueException()
 
-
-
-    @when(AST.InstructionList)
+    @when(AST.BreakInstr)
     def visit(self, node):
-        for child in node.children:
-            child.accept(self)
-
-
-    @when(AST.FunctionExpressionList)
-    def visit(self, node):
-        for child in node.children:
-            child.accept(self)
-
+        raise BreakException()
 
     @when(AST.CompoundInstr)
     def visit(self, node):
-        node.declarations.accept(self)
-        node.instructions.accept(self)
+        self.memory_stack.push(Memory(MemoryType.NESTED))
+        for statement in node.statements:
+            try:
+                statement.accept(self)
+            except (BreakException, ContinueException, ReturnValueException) as e:
+                self.memory_stack.pop()
+                raise e
 
+        self.memory_stack.pop()
 
-
-    @when(AST.FunctionExpression)
+    @when(AST.FunDef)
     def visit(self, node):
-        self.globalMem.peek().put(node.name, node)
+        self.global_memory.put(node.name, node)
 
-
-
-    @when(AST.InvocationExpression)
+    @when(AST.FunArg)
     def visit(self, node):
-        fun = self.globalMem.get(node.name)#EXCEPTION
-        functionMem = Memory(node.name)
-        for argExpr, actualArg in zip(node.args.children, fun.args.children):
-            functionMem.put(actualArg.accept(self), argExpr.accept(self))
-        self.globalMem.push(functionMem)
+        return {ARG_NAME: node.arg, ARG_TYPE: node.arg_type}
+
+    @when(AST.FunCall)
+    def visit(self, node):
+        new_memory = Memory(MemoryType.FUNCTION)
+        function_definition = self.global_memory.get(node.name)
+
+        for i in range(0, len(node.args)):
+            accepted_def_arg = function_definition.args[i].accept(self)
+            accepted_call_arg = node.args[i].accept(self)
+            arg_type = accepted_def_arg[ARG_TYPE]
+            name = accepted_def_arg[ARG_NAME]
+            new_memory.put(name, self.cast(arg_type, accepted_call_arg))
+
+        self.memory_stack.push(new_memory)
+
         try:
-            fun.body.accept(self)
+            for statement in function_definition.statements:
+                statement.accept(self)
         except ReturnValueException as e:
-            return e.value
-        finally:
-            self.globalMem.pop()
+            self.memory_stack.pop()
+            return self.cast(function_definition.return_type, e.value)
 
-    @when(AST.Argument)
+        self.memory_stack.pop()
+
+    @when(AST.Identifier)
     def visit(self, node):
-        return node.name
+        return self.memory_stack.get(node.identifier)
 
-
-    @when(AST.ArgumentList)
+    @when(AST.BinExpr)
     def visit(self, node):
-        for child in node.children:
-            child.accept(self)
+        left = node.left.accept(self)
+        right = node.right.accept(self)
+        if node.op == '/' and isinstance(left, int) and isinstance(right, int):
+            return left // right
+        return self.evaluator(node.op, left, right)
 
-
-    @when(AST.AssignmentInstr)
+    @when(AST.Integer)
     def visit(self, node):
-        expr_accept = node.expr.accept(self)
-        self.globalMem.set(node.id, expr_accept)
-        return expr_accept
-
-
-    @when(AST.LoopControlInstr)
-    def visit(self, node):
-        if node.type == 'Break':
-            raise BreakException()
-        elif node.type == 'Continue':
-            raise ContinueException()
-
-    @when(AST.Declaration)
-    def visit(self, node):
-        node.inits.accept(self)
-
-
-    @when(AST.DeclarationList)
-    def visit(self, node):
-        for child in node.children:
-            child.accept(self)
-
-
-    @when(AST.ExpressionList)
-    def visit(self, node):
-        for child in node.children:
-            child.accept(self)
-
+        return int(node.value)
 
     @when(AST.Float)
     def visit(self, node):
         return float(node.value)
 
-
-    @when(AST.Init)
-    def visit(self, node):
-        expr_accept = node.expr.accept(self)
-        self.globalMem.peek().put(node.name, expr_accept)
-        return expr_accept
-
-
-    @when(AST.InitList)
-    def visit(self, node):
-        for child in node.children:
-            child.accept(self)
-
-
-    @when(AST.Integer)
-    def visit(self, node):
-        return int(node.value);
-
-    @when(AST.LabeledInstr)
-    def visit(self, node):
-        pass
-
-
-    @when(AST.PrintInstr)
-    def visit(self, node):
-        print node.expr.accept(self)
-
-
-    @when(AST.ProgramParts)
-    def visit(self, node):
-        for p in node.children:
-            p.accept(self)
-
-
-    @when(AST.ReturnInstr)
-    def visit(self, node):
-        value = node.expression.accept(self)
-        raise ReturnValueException(value)
-
-
     @when(AST.String)
     def visit(self, node):
-        return node.value
+        return str(node.value).strip('"')
 
-
-    @when(AST.Variable)
-    def visit(self, node):
-        return self.globalMem.get(node.name)
-
-
-
-
+    def cast(self, type_str, val):
+        if type_str == Types.INT:
+            return int(val)
+        elif type_str == Types.FLOAT:
+            return float(val)
+        else:
+            return str(val)

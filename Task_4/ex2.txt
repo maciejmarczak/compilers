@@ -1,0 +1,11 @@
+int funcfun(int x) {
+    while( x < 25 ) {
+        if(x==15)
+            return x+1;
+        print x;
+        x = x + 1;
+    }
+    return x;
+}
+
+print funcfun(10);

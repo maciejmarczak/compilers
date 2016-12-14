@@ -1,189 +1,153 @@
+
 class Node(object):
+    def __str__(self):
+        return self.printTree()
+
     def accept(self, visitor):
         return visitor.visit(self)
 
-class ProgramParts(Node):
-    def __init__(self):
-        self.children = []
 
-    def appendPart(self, part):
-        self.children.append(part)
-
-
-class Const(Node):
-    def __init__(self, line, value):
-        self.value = value
-        self.line = line
-
-
-class Integer(Const):
-    def __init__(self, line, value):
-        Const.__init__(self, line, value)
-
-
-class Float(Const):
-    def __init__(self, line, value):
-        Const.__init__(self, line, value)
-
-
-class String(Const):
-    def __init__(self, line, value):
-        Const.__init__(self, line, value)
-
-
-class Variable(Node):
-    def __init__(self, line, name):
-        self.name = name
-        self.line = line
-
-
-class BinExpr(Node):
-    def __init__(self, line, lhs, op, rhs):
-        self.lhs = lhs
-        self.op = op
-        self.rhs = rhs
-        self.line = line
-
-
-class ExpressionList(Node):
-    def __init__(self):
-        self.children = []
-
-    def addExpression(self, expr):
-        self.children.append(expr)
-
-
-class GroupedExpression(Node):
-    def __init__(self, interior):
-        self.interior = interior
-
-
-class FunctionExpression(Node):
-    def __init__(self, retType, name, args, body):
-        self.retType = retType
-        self.name = name
-        self.args = args
-        self.body = body
-
-
-class FunctionExpressionList(Node):
-    def __init__(self):
-        self.children = []
-
-    def addFunction(self, fundef):
-        self.children.append(fundef)
-
-
-class DeclarationList(Node):
-    def __init__(self):
-        self.children = []
-
-    def addDeclaration(self, declaration):
-        self.children.append(declaration)
+# sections : sections section | <empty> from new grammar
+class Program(Node):
+    def __init__(self, sections):
+        self.sections = sections
 
 
 class Declaration(Node):
-    def __init__(self, type, inits):
-        self.type = type
+    def __init__(self, type_name, inits):
+        self.type_name = type_name
         self.inits = inits
 
 
-class InvocationExpression(Node):
-    def __init__(self, line, name, args):
-        self.name = name
-        self.args = args
-        self.line = line
-
-   
-class Argument(Node):
-    def __init__(self, line, type, name):
-        self.type = type
-        self.name = name
-        self.line = line
-
-
-class ArgumentList(Node):
-    def __init__(self):
-        self.children = []
-        
-    def addArgument(self, arg):
-        self.children.append(arg)
-
-
-class InitList(Node):
-    def __init__(self):
-        self.children = []
-        
-    def addInit(self, init):
-        self.children.append(init)
-
-
 class Init(Node):
-    def __init__(self, line, name, expr):
-        self.name = name
-        self.expr = expr
-        self.line = line
+    def __init__(self, identifier, expression, lineno):
+        self.identifier = identifier
+        self.expression = expression
+        self.lineno = lineno
 
 
-class InstructionList(Node):
-    def __init__(self):
-        self.children = []
-    
-    def addInstruction(self, instr):
-        self.children.append(instr)
-
+# instructions
 
 class PrintInstr(Node):
-    def __init__(self, line, expr):
-        self.expr = expr
-        self.line = line
+    def __init__(self, expressions):
+        self.expressions = expressions
 
 
 class LabeledInstr(Node):
-    def __init__(self, id, instr):
-        self.id = id
+    def __init__(self, identifier, instr, lineno):
+        self.identifier = identifier
         self.instr = instr
+        self.lineno = lineno
 
 
-class AssignmentInstr(Node):
-    def __init__(self, line, id, expr):
-        self.id = id
-        self.expr = expr
-        self.line = line
-
-
-class CompoundInstr(Node):
-    def __init__(self, declarations, instructions):
-        self.declarations = declarations
-        self.instructions = instructions
+class Assignment(Node):
+    def __init__(self, identifier, expression, lineno):
+        self.identifier = identifier
+        self.expression = expression
+        self.lineno = lineno
 
 
 class ChoiceInstr(Node):
-    def __init__(self, condition, action, alternateAction=None):
+    def __init__(self, condition, if_instr, else_instr=None):
         self.condition = condition
-        self.action = action
-        self.alternateAction = alternateAction
+        self.if_instr = if_instr
+        self.else_instr = else_instr
 
 
 class WhileInstr(Node):
-    def __init__(self, condition, instruction):
+    def __init__(self, condition, instr):
         self.condition = condition
-        self.instruction = instruction
+        self.instr = instr
 
 
 class RepeatInstr(Node):
-    def __init__(self, instructions, condition):
-        self.instructions = instructions
+    def __init__(self, instrs, condition):
         self.condition = condition
+        self.instrs = instrs
 
 
 class ReturnInstr(Node):
-    def __init__(self, line, expression):
+    def __init__(self, expression, lineno):
         self.expression = expression
-        self.line = line
+        self.lineno = lineno
 
 
-class LoopControlInstr(Node):
-    def __init__(self, line, type):
-        self.type = type
-        self.line = line
+class ContinueInstr(Node):
+    def __init__(self, lineno):
+        self.name = 'continue'
+        self.lineno = lineno
+
+
+class BreakInstr(Node):
+    def __init__(self, lineno):
+        self.name = 'break'
+        self.lineno = lineno
+
+
+# compound_instr : '{' statements '}' from new grammar
+class CompoundInstr(Node):
+    def __init__(self, statements):
+        self.statements = statements
+
+
+# fundef and expressions
+
+class FunDef(Node):
+    def __init__(self, return_type, name, args, statements, lineno, end_lineno):
+        self.return_type = return_type
+        self.name = name
+        self.args = args
+        self.statements = statements
+        self.lineno = lineno
+        self.end_lineno = end_lineno
+
+
+class FunArg(Node):
+    def __init__(self, arg_type, arg, lineno):
+        self.arg_type = arg_type
+        self.arg = arg
+        self.lineno = lineno
+
+
+# expression : ID '(' expr_list_or_empty ')'
+class FunCall(Node):
+    def __init__(self, name, args, lineno):
+        self.name = name
+        self.args = args
+        self.lineno = lineno
+
+
+class Identifier(Node):
+    def __init__(self, identifier, lineno):
+        self.identifier = identifier
+        self.lineno = lineno
+
+
+class BinExpr(Node):
+    def __init__(self, op, left, right, lineno):
+        self.op = op
+        self.left = left
+        self.right = right
+        self.lineno = lineno
+
+
+# Consts
+
+class Const(Node):
+    def __init__(self, value):
+        self.value = value
+
+
+class Integer(Const):
+    def __init__(self, value):
+        super(Integer, self).__init__(value)
+
+
+class Float(Const):
+    def __init__(self, value):
+        super(Float, self).__init__(value)
+
+
+class String(Const):
+    def __init__(self, value):
+        super(String, self).__init__(value)

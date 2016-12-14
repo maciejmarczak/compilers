@@ -1,32 +1,34 @@
 import sys
-import ply.yacc as yacc
-from Cparser import Cparser
-from TypeChecker import TypeChecker
-from Interpreter import Interpreter
 
+import ply.yacc as yacc
+
+from Cparser import Cparser
+from Interpreter import Interpreter
+from TypeChecker import TypeChecker
 
 if __name__ == '__main__':
 
+    filename = sys.argv[1] if len(sys.argv) > 1 else "tests/scopes4.in"
     try:
-        filename = sys.argv[1] if len(sys.argv) > 1 else "example.txt"
-        file = open(filename, "r")
+        test_file = open(filename, "r")
     except IOError:
         print("Cannot open {0} file".format(filename))
         sys.exit(0)
 
     Cparser = Cparser()
     parser = yacc.yacc(module=Cparser)
-    text = file.read()
+    text = test_file.read()
 
     ast = parser.parse(text, lexer=Cparser.scanner)
-    if ast:
-        typeChecker = TypeChecker()
-        typeChecker.visit(ast)   # or alternatively ast.accept(typeChecker)
-        if typeChecker.passed:
-            print "Type check finished"
-            ast.accept(Interpreter())
-            print "Interpretation finished"
-        else:
-            sys.stderr.write("Type check failed -> no interpretation")
-    else:
-        sys.stderr.write("Syntax check failed -> no type check & interpretation")
+    typeChecker = TypeChecker()
+    typeChecker.visit(ast)
+
+    # jesli wizytor TypeChecker z implementacji w poprzednim lab korzystal z funkcji accept
+    # to nazwa tej ostatniej dla Interpretera powinna zostac zmieniona, np. na accept2 ( ast.accept2(Interpreter()) )
+    # tak aby rozne funkcje accept z roznych implementacji wizytorow nie kolidowaly ze soba
+    ast.accept(Interpreter())
+
+    # in future
+    # ast.accept(OptimizationPass1())
+    # ast.accept(OptimizationPass2())
+    # ast.accept(CodeGenerator())

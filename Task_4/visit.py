@@ -37,7 +37,7 @@ def when(param_type):
 
 class Dispatcher(object):
     def __init__(self, param_name, fn):
-        frame = inspect.currentframe().f_back.f_back   # these 2 lines
+        frame = inspect.currentframe().f_back.f_back  # these 2 lines
         top_level = frame.f_locals == frame.f_globals  # seem redundant
         self.param_index = inspect.getargspec(fn).args.index(param_name)
         self.param_name = param_name
