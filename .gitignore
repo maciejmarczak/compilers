@@ -1,4 +1,9 @@
 .idea
 *.pyc
-Task_2/parser.out
-Task_2/parsetab.py
+parser.out
+parsetab.py
+*.iml
+*.ipr
+*.iws
+target
+*.class
