@@ -1,6 +1,6 @@
 import org.specs2.mutable._
 import AST._
-import simplifier.Simplifier.simplify
+import simplifier.Simplifier.simplifyFlat
 
 
 class parserSpec extends Specification {
@@ -12,7 +12,7 @@ class parserSpec extends Specification {
     val parseResult = parser.parseAll(parser.program, str+"\n")
 
     parseResult match {
-       case parser.Success(result: List[AST.Node], in) => simplify(result)
+       case parser.Success(result: List[AST.Node], in) => simplifyFlat(result)
        case parser.NoSuccess(msg: String, in) => throw new IllegalArgumentException("FAILURE Could not parse '" + str + "': " + msg)
     }
   }

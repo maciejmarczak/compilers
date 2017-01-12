@@ -26,7 +26,7 @@ object Main {
                      println("\nAST:")
                      println(parseResult)
                      val tree = AST.NodeList(result)
-                     val simplifiedTree = simplifier.Simplifier.simplify(tree)
+                     val simplifiedTree = simplifier.Simplifier.simplifyFlat(tree)
                      println("\nAST after optimization:")
                      println(simplifiedTree)
                      println("\nProgram after optimization:")
